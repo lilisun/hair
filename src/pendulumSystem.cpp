@@ -92,12 +92,18 @@ void PendulumSystem::draw()
 		glTranslatef(pos[0], pos[1], pos[2] );
 		glutSolidSphere(0.075f,10.0f,10.0f);
         
-		glTranslatef(pos[0], pos[1], pos[2] );
-        
-        //this is just drawing cylinders at each particle point...
-        //i just wanted to see if the cylinder would actually appear
-        GLUquadricObj *quad= gluNewQuadric();
-        gluCylinder(quad,0.05f,0.05f,0.5f,32,32);
+        //drawing cylinders at each particle point
+        if (i+1<m_numParticles){
+            Vector3f pos2 = m_vVecState[2*(i+1)];
+            //glRotatef(90.0f,1.0f,0,0);
+            float angleRad = atanf((pos[0]-pos2[0])/(pos[1]-pos2[1]));
+            float angleDeg = angleRad * 180 / 3.1415296;
+            glRotatef(-angleDeg,0,0,1.0f);
+            glRotatef(90.0f,1.0f,0.0f,0.0f); //switch y and z axis
+            //glRotatef(0.0f,pos2[0],pos2[1],pos2[2]);
+            GLUquadricObj *quad= gluNewQuadric();
+            gluCylinder(quad,0.075f,0.075f,0.5f,32,32); }
+        glPopMatrix();
         
 		glPopMatrix();
 	}
