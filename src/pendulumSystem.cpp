@@ -15,6 +15,7 @@ PendulumSystem::PendulumSystem(int numParticles):ParticleSystem(numParticles)
 	
 	// fill in code for initializing the state based on the number of particles
 	for (int i = 0; i < m_numParticles; i++) {
+		// ACTUAL HAIR PARTICLE
 		// position vector
 		if (i == 0) {
 			m_vVecState.push_back(Vector3f(0,0,0));
@@ -24,21 +25,83 @@ PendulumSystem::PendulumSystem(int numParticles):ParticleSystem(numParticles)
 			m_vVecState.push_back(Vector3f(i*rest_len, 0, 0));
 		}
 
+		// velocity vector
+		m_vVecState.push_back(Vector3f(0,0,0));
 
-		vector<Vector3f> spr;
+
+		// GHOST PARTICLES (to form triangles)
+		// position vector
+		if (i == 0) {
+			continue;
+		}
+		else {
+			ghost_particles.push_back(Vector3f((i-0.5)*rest_len, 0.2f, 0));
+		}
+
+		// velocity vector
+		ghost_particles.push_back(Vector3f(0,0,0));
+
+
+		// SPRINGS
+		// edge springs
+		vector<Vector3f> edge;
 		if ((i-1) > -1) {
-			spr.push_back(Vector3f(i-1, spring_const*i, rest_len));
+			edge.push_back(Vector3f(i-1, spring_const, rest_len)); // took out multiplying spring_const*i?
 		}
 
 		if ((i+1) < m_numParticles) {
-			spr.push_back(Vector3f(i+1, spring_const*i, rest_len));
+			edge.push_back(Vector3f(i+1, spring_const, rest_len)); // same here
 		}
 
-		springs.push_back(spr);
+		edge_springs.push_back(edge);
+		
+		vector<Vector3f> ghost_edge;
+		// first value is index of hair particle that ghost particle i should have an edge with
+		if (i == 0) {
+			ghost_edge.push_back(Vector3f(i+1, spring_const, 0.2f));
+		}
+		else if (i == m_numParticles-1) {
+			ghost_edge.push_back(Vector3f(i-1, spring_const, 0.2f));
+		}
+		else {
+			ghost_edge.push_back(Vector3f(i+1, spring_const, 0.2f));
+			ghost_edge.push_back(Vector3f(i-1, spring_const, 0.2f));
+		}
 
-		// velocity vector
-		m_vVecState.push_back(Vector3f(0,0,0));
-			
+		ghost_edge_springs.push_back(ghost_edge);
+
+
+		// bending springs
+		vector<Vector3f> bend;
+		if ((i-2) > -1) {
+			bend.push_back(Vector3f(i-2, spring_const, 2*rest_len));
+		}
+		if ((i+2) < m_numParticles) {
+			bend.push_back(Vector3f(i+2, spring_const, 2*rest_len));
+		}
+
+		bend_springs.push_back(bend);
+
+		vector<Vector3f> ghost_bend;
+		// first value is index of ghost particle that ghost particle i should have an edge with
+		if ((i-1) > -1) {
+			ghost_bend.push_back(Vector3f(i-1, spring_const, rest_len));
+		}
+		if ((i+1) < m_numParticles) {
+			ghost_bend.push_back(Vector3f(i+1, spring_const, rest_len));
+		}
+
+		// torsion springs
+		vector<Vector3f> torsion;
+		float hypotenuse = 0; // DO THISSSS
+
+		// first value is index of ghost particle that hair particle i should have an edge with
+		if ((i+1) > (m_numParticles-1)) {
+			torsion.push_back(Vector3f(i+1, spring_const, hypotenuse));
+		}
+		else {
+			torsion.push_back(Vector3f(i-1, spring_const, hypotenuse))
+		}
 	}
 }
 

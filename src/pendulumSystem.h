@@ -28,7 +28,14 @@ public:
     float spring_const;
     float rest_len;
 
-    vector<vector<Vector3f>> springs;
+    vector<Vector3f> ghost_particles;
+    vector<vector<Vector3f>> edge_springs;
+    vector<vector<Vector3f>> ghost_edge_springs;
+    vector<vector<Vector3f>> bend_springs;
+    vector<vector<Vector3f>> ghost_bend_springs;
+    vector<vector<Vector3f>> torsion_springs;
+    vector<vector<Vector3f>> ghost_torsion_springs;
+
 
 
 	void moveBack() {
