@@ -19,13 +19,15 @@ public:
 	void showSprings();
 
 	Vector3f getParticlePosition(vector<Vector3f> state, int x);
-
 	Vector3f getParticleVelocity(vector<Vector3f> state, int x);
+
+	Vector3f addSpringForces(vector<Vector3f> state, vector<Vector3f> spr, Vector3f current_position);
 
 	float mass;
     Vector3f gravity;
     float drag_const;
     float spring_const;
+    float less_stiff_spring_const;
     float rest_len;
 
     vector<Vector3f> ghost_particles;
@@ -34,14 +36,14 @@ public:
     vector<vector<Vector3f>> bend_springs;
     vector<vector<Vector3f>> ghost_bend_springs;
     vector<vector<Vector3f>> torsion_springs;
-    vector<vector<Vector3f>> ghost_torsion_springs;
-
-
 
 	void moveBack() {
 		return;}
 	void moveForward() {
 		return;}
+private:
+	int numHairParticles;
+	int numGhostParticles;
 };
 
 #endif
