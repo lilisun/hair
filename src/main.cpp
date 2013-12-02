@@ -22,10 +22,9 @@ namespace
 {
 
     ParticleSystem *system;
-    ParticleSystem *system2;
-    ParticleSystem *system3;
     TimeStepper * timeStepper;
     float timeStep;
+    int numParticles;
 
   // initialize your particle systems
   ///TODO: read argv here. set timestepper , step size etc
@@ -35,9 +34,15 @@ namespace
     srand( time( NULL ) );
     timeStep = 0.04f;
     timeStepper = new RK4();
-    system = new PendulumSystem(5);
-    system2 = new PendulumSystem(5);
-    system3 = new PendulumSystem(5);
+
+    if(argc == 2){
+        istringstream is(argv[1]);
+        is>>numParticles;
+        system = new PendulumSystem(numParticles);
+    }
+    else {
+        system = new PendulumSystem(4);
+    }
   }
 
   // Take a step forward for the particle shower
@@ -47,8 +52,6 @@ namespace
   {
     if(timeStepper!=0){
         timeStepper->takeStep(system, timeStep);
-        timeStepper->takeStep(system2, timeStep);
-        timeStepper->takeStep(system3, timeStep);
 
     }
   }
@@ -66,8 +69,6 @@ namespace
     glutSolidSphere(0.1f,10.0f,10.0f);
     
     system->draw();
-    system2->draw();
-    system3->draw();
     
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, floorColor);
     glPushMatrix();
