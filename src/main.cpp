@@ -127,6 +127,10 @@ namespace
             system->showCylinders();
             break;
         }
+        case 'r':{ //resets system
+            system = new PendulumSystem(numParticles);
+            break;
+        }
         default:
             cout << "Unhandled key press " << key << "." << endl;        
         }
