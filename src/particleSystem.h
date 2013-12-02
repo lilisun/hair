@@ -29,6 +29,9 @@ public:
 	virtual void moveForward() = 0;
 
 	virtual void showSprings() = 0;
+    
+    virtual void showGhostParticles()=0;
+    virtual void showCylinders()=0;
 	
 protected:
 

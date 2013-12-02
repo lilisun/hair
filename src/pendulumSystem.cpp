@@ -2,12 +2,14 @@
 #include "pendulumSystem.h"
 #include <iostream>
 
+#include <math.h>
+
 PendulumSystem::PendulumSystem(int numParticles):ParticleSystem(numParticles)
 {
 	mass = 0.02f;
     gravity = Vector3f(0.0f, -1.0f, 0.0f);
     drag_const = 0.01f;
-   d spring_const = 5.0f;
+    spring_const = 5.0f;
     less_stiff_spring_const = 1.0f;
     rest_len = 0.5f;
 
@@ -15,6 +17,8 @@ PendulumSystem::PendulumSystem(int numParticles):ParticleSystem(numParticles)
 	numGhostParticles = numParticles - 1;
 	m_numParticles = numParticles + numGhostParticles;
 	drawSprings = false;
+    drawGhostParticles=false;
+    drawCylinders=false;
 	
 	// HAIR PARTICLES
 	for (int i = 0; i < numHairParticles; i++) {
@@ -56,7 +60,7 @@ PendulumSystem::PendulumSystem(int numParticles):ParticleSystem(numParticles)
 
 		// torsion springs
 		vector<Vector3f> torsion;
-		float hypotenuse = sqrt(pow((sqrt(3)/2)*rest_len, 2.0f) + pow(1.5*rest_len, 2.0f));
+		float hypotenuse = sqrt(pow((sqrt(3.0f)/2.0f)*rest_len, 2.0f) + pow(1.5f*rest_len, 2.0f));
 
 		// first value is index of ghost particle that hair particle i should have an edge with
 		if ((i+1) < numGhostParticles) {
@@ -183,33 +187,40 @@ void PendulumSystem::draw()
 		Vector3f pos = m_vVecState[2*i] ;//  position of particle i. YOUR CODE HERE
 		glPushMatrix();
 		glTranslatef(pos[0], pos[1], pos[2] );
-		glutSolidSphere(0.075f,10.0f,10.0f);
         
-        // //drawing cylinders at each particle point
-        // if (i+1<m_numParticles){
-        //     Vector3f pos2 = m_vVecState[2*(i+1)];
-        //     //glRotatef(90.0f,1.0f,0,0);
-        //     float angleRad = atanf((pos[0]-pos2[0])/(pos[1]-pos2[1]));
-        //     float angleDeg = angleRad * 180 / 3.1415296;
-        //     glRotatef(-angleDeg,0,0,1.0f);
-        //     glRotatef(90.0f,1.0f,0.0f,0.0f); //switch y and z axis
-        //     //glRotatef(0.0f,pos2[0],pos2[1],pos2[2]);
-        //     GLUquadricObj *quad= gluNewQuadric();
-        //     gluCylinder(quad,0.075f,0.075f,0.5f,32,32); }
-        // glPopMatrix();
+        float hairWidth=.05f;
         
-		glPopMatrix();
-	}
+		glutSolidSphere(hairWidth,10.0f,10.0f);
+        
+        
+        // drawing cylinders at each particle point
+        if (drawCylinders){
+             if (i+1<m_numParticles){
+                 Vector3f pos2 = m_vVecState[2*(i+1)];
+                 float angleRad = atanf((pos[0]-pos2[0])/(pos[1]-pos2[1]));
+                 float angleDeg = angleRad * 180 / 3.1415296;
+                 glRotatef(-angleDeg,0,0,1.0f);
+                 glRotatef(90.0f,1.0f,0.0f,0.0f); //switch y and z axis since cylinders draw on the z axis
+                 GLUquadricObj *quad= gluNewQuadric();
+                 gluCylinder(quad,hairWidth,hairWidth,0.5f,32,32);
+                 glPopMatrix();}
 
-	for (int j = 0; j < numGhostParticles; j++) {
-		int i = j + numHairParticles;
-		Vector3f pos = m_vVecState[2*i] ;//  position of particle i. YOUR CODE HERE
-		glPushMatrix();
-		glTranslatef(pos[0], pos[1], pos[2] );
-		glutSolidSphere(0.025f,10.0f,10.0f);
+        }
         
 		glPopMatrix();
 	}
+    
+    if (drawGhostParticles){
+        for (int j = 0; j < numGhostParticles; j++) {
+            int i = j + numHairParticles;
+            Vector3f pos = m_vVecState[2*i] ;//  position of particle i. YOUR CODE HERE
+            glPushMatrix();
+            glTranslatef(pos[0], pos[1], pos[2] );
+            glutSolidSphere(0.025f,10.0f,10.0f);
+            
+            glPopMatrix();
+        }
+    }
     
 
 	if (drawSprings) {
@@ -259,4 +270,26 @@ void PendulumSystem::showSprings() {
 	else {
 		drawSprings = true;
 	}
+}
+
+void PendulumSystem::showGhostParticles(){
+    if (drawGhostParticles) {
+		drawGhostParticles = false;
+	}
+    
+	else {
+		drawGhostParticles = true;
+	}
+    
+}
+
+void PendulumSystem::showCylinders(){
+    if (drawCylinders) {
+		drawCylinders = false;
+	}
+    
+	else {
+		drawCylinders = true;
+	}
+    
 }

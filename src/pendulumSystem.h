@@ -17,6 +17,10 @@ public:
 
 	bool drawSprings;
 	void showSprings();
+    bool drawGhostParticles;
+    void showGhostParticles();
+    bool drawCylinders;
+    void showCylinders();
 
 	Vector3f getParticlePosition(vector<Vector3f> state, int x);
 	Vector3f getParticleVelocity(vector<Vector3f> state, int x);

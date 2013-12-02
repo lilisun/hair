@@ -22,6 +22,8 @@ namespace
 {
 
     ParticleSystem *system;
+    ParticleSystem *system2;
+    ParticleSystem *system3;
     TimeStepper * timeStepper;
     float timeStep;
 
@@ -33,7 +35,9 @@ namespace
     srand( time( NULL ) );
     timeStep = 0.04f;
     timeStepper = new RK4();
-    system = new PendulumSystem(4);
+    system = new PendulumSystem(5);
+    system2 = new PendulumSystem(5);
+    system3 = new PendulumSystem(5);
   }
 
   // Take a step forward for the particle shower
@@ -41,9 +45,11 @@ namespace
   ///and switch between different timeSteppers
   void stepSystem()
   {
-      ///TODO The stepsize should change according to commandline arguments
     if(timeStepper!=0){
-      timeStepper->takeStep(system, timeStep);
+        timeStepper->takeStep(system, timeStep);
+        timeStepper->takeStep(system2, timeStep);
+        timeStepper->takeStep(system3, timeStep);
+
     }
   }
 
@@ -60,11 +66,12 @@ namespace
     glutSolidSphere(0.1f,10.0f,10.0f);
     
     system->draw();
-    
+    system2->draw();
+    system3->draw();
     
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, floorColor);
     glPushMatrix();
-    glTranslatef(0.0f,-5.0f,0.0f);
+    glTranslatef(0.0f,-10.0f,0.0f);
     glScaled(50.0f,0.01f,50.0f);
     glutSolidCube(1);
     glPopMatrix();
@@ -107,9 +114,18 @@ namespace
             camera.SetCenter( Vector3f::ZERO );
             break;
         }
-        case 's':
+        case 's':{
             system->showSprings();
             break;
+        }
+        case 'g':{
+            system->showGhostParticles();
+            break;
+        }
+        case 'c':{
+            system->showCylinders();
+            break;
+        }
         default:
             cout << "Unhandled key press " << key << "." << endl;        
         }
