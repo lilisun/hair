@@ -24,6 +24,7 @@ namespace
     ParticleSystem *system;
     TimeStepper * timeStepper;
     float timeStep;
+    int numParticles;
 
   // initialize your particle systems
   ///TODO: read argv here. set timestepper , step size etc
@@ -33,7 +34,16 @@ namespace
     srand( time( NULL ) );
     timeStep = 0.04f;
     timeStepper = new RK4();
-    system = new PendulumSystem(4);
+
+
+    if(argc == 2){
+        istringstream is(argv[1]);
+        is>>numParticles;
+        system = new PendulumSystem(numParticles);
+    }
+    else {
+        system = new PendulumSystem(4);
+    }
   }
 
   // Take a step forward for the particle shower
