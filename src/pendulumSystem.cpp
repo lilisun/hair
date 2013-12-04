@@ -31,7 +31,7 @@ PendulumSystem::PendulumSystem(int numParticles):ParticleSystem(numParticles)
 			}
 
 			else {
-				m_vVecState.push_back(Vector3f(i*rest_len, -1*(k-1) * 0.2f, 0));
+				m_vVecState.push_back(Vector3f(i*rest_len, -1*(k-1) * 0.2f, 0)); //start each strand not in the same place
 			}
 
 			// velocity vector
@@ -79,7 +79,7 @@ PendulumSystem::PendulumSystem(int numParticles):ParticleSystem(numParticles)
 		// GHOST PARTICLES (to form triangles)
 		for (int j = 0; j < numGhostParticles; j++) {
 			// position vector
-			m_vVecState.push_back(Vector3f((j+0.5)*rest_len, 0.2f, (k-1) * -0.2f));
+			m_vVecState.push_back(Vector3f((j+0.5)*rest_len, -1*(k-1) * 0.2f, -0.2f ));
 
 			// velocity vector
 			m_vVecState.push_back(Vector3f(0,0,0));
@@ -171,8 +171,8 @@ vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
 
 		}
 	}
-	return f;
-	//return empty;
+	
+	return f; //f has forces, empty is no forces
 }
 
 Vector3f PendulumSystem::getParticlePosition(vector<Vector3f> state, int x) {
