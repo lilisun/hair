@@ -13,7 +13,7 @@ PendulumSystem::PendulumSystem(int numParticles):ParticleSystem(numParticles)
 	less_stiff_spring_const = 1.0f;
 	rest_len = 0.5f;
 
-	numStrands = 3;
+	numStrands = 1;
 	numHairParticles = numParticles;
 	numGhostParticles = numParticles - 1;
 	m_numParticles = (numHairParticles + numGhostParticles) * numStrands;
@@ -171,7 +171,7 @@ vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
 
 		}
 	}
-	
+
 	return f; //f has forces, empty is no forces
 }
 
@@ -209,15 +209,17 @@ void PendulumSystem::draw()
 			glutSolidSphere(hairWidth,10.0f,10.0f);
 	        
 	        // drawing cylinders at each particle point
+	        //TODO FIX WEIRD ANGLE ERRORS ...
 	        if (drawCylinders){
 	             if (i+1<numHairParticles){
 	                 Vector3f pos2 = m_vVecState[currentIndex+2];
+	                 float distance = sqrt( pow(pos[0]-pos2[0],2.0f) + pow(pos[1]-pos2[1],2.0f) + pow(pos[2]-pos2[2],2.0f));
 	                 float angleRad = atanf((pos[0]-pos2[0])/(pos[1]-pos2[1]));
 	                 float angleDeg = angleRad * 180 / 3.1415296;
 	                 glRotatef(-angleDeg,0,0,1.0f);
 	                 glRotatef(90.0f,1.0f,0.0f,0.0f); //switch y and z axis since cylinders draw on the z axis
 	                 GLUquadricObj *quad= gluNewQuadric();
-	                 gluCylinder(quad,hairWidth,hairWidth,0.5f,32,32);
+	                 gluCylinder(quad,hairWidth,hairWidth,distance,32,32);
 	                 glPopMatrix();}
 
 	        }
