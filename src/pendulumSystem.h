@@ -12,7 +12,7 @@ public:
 	PendulumSystem(int numParticles);
 	
 	vector<Vector3f> evalF(vector<Vector3f> state);
-	
+
 	void draw();
 
 	bool drawSprings;
@@ -40,6 +40,9 @@ public:
     vector<vector<Vector3f>> bend_springs;
     vector<vector<Vector3f>> ghost_bend_springs;
     vector<vector<Vector3f>> torsion_springs;
+
+    int numStrands;
+	void initializeStrand();
 
 	void moveBack() {
 		return;}
