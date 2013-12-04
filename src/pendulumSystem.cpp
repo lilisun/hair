@@ -38,41 +38,40 @@ PendulumSystem::PendulumSystem(int numParticles, int howManyStrands):ParticleSys
 			m_vVecState.push_back(Vector3f(0,0,0));
 
 			// SPRINGS
+			int currentParticle=(k-1)*numStrandParticles+i;
 			// edge springs
-			vector<Vector3f> edge;
+			vector<Vector4f> edge;
 			if ((i-1) > -1) { //if it's not the first particle, put a spring to the previous one
-				edge.push_back(Vector3f((k-1)*numStrandParticles+i-1, spring_const, rest_len)); // took out multiplying spring_const*i?
-				cout << edge_springs.size() << " " << i << " "<<(k-1)*numStrandParticles+i-1 << "a" << endl;;
+				edge.push_back(Vector4f(currentParticle,currentParticle-1, spring_const, rest_len)); // took out multiplying spring_const*i?
 			}
 
 			if ((i+1) < numHairParticles) { //if it's not the last particle, put a spring to the next one
-				edge.push_back(Vector3f((k-1)*numStrandParticles+i+1, spring_const, rest_len)); // same here
-				cout << edge_springs.size() << " " << i << " "<<(k-1)*numStrandParticles+i+1 << "b" <<endl;;
+				edge.push_back(Vector4f(currentParticle,currentParticle+1, spring_const, rest_len)); // same here
 			}
 
 			edge_springs.push_back(edge);
 
 			// bending springs
-			vector<Vector3f> bend;
+			vector<Vector4f> bend;
 			if ((i-2) > -1) {
-				bend.push_back(Vector3f(i*k-2, less_stiff_spring_const, 2*rest_len));
+				bend.push_back(Vector4f(currentParticle,currentParticle-2, less_stiff_spring_const, 2*rest_len));
 			}
 			if ((i+2) < numHairParticles) {
-				bend.push_back(Vector3f(i*k+2, less_stiff_spring_const, 2*rest_len));
+				bend.push_back(Vector4f(currentParticle,currentParticle+2, less_stiff_spring_const, 2*rest_len));
 			}
 
 			bend_springs.push_back(bend);
 
 			// torsion springs
-			vector<Vector3f> torsion;
+			vector<Vector4f> torsion;
 			float hypotenuse = sqrt(pow((sqrt(3.0f)/2.0f)*rest_len, 2.0f) + pow(1.5f*rest_len, 2.0f));
 
-			// first value is index of ghost particle that hair particle i should have an edge with
+			// 2nd value is index of ghost particle that hair particle i should have an edge with
 			if ((i+1) < numGhostParticles) {
-				torsion.push_back(Vector3f(i*k+1 + numHairParticles, less_stiff_spring_const, hypotenuse));
+				torsion.push_back(Vector4f(currentParticle,currentParticle+1 + numHairParticles, less_stiff_spring_const, hypotenuse));
 			}
 			else {
-				torsion.push_back(Vector3f(i*k-2 + numHairParticles, less_stiff_spring_const, hypotenuse));
+				torsion.push_back(Vector4f(currentParticle,currentParticle-2 + numHairParticles, less_stiff_spring_const, hypotenuse));
 			}
 
 			torsion_springs.push_back(torsion);
@@ -87,27 +86,22 @@ PendulumSystem::PendulumSystem(int numParticles, int howManyStrands):ParticleSys
 			m_vVecState.push_back(Vector3f(0,0,0));
 
 			// edge springs
-			vector<Vector3f> ghost_edge;
-			// first value is index of hair particle that ghost particle i should have an edge with
-			if (j == 0) {
-				ghost_edge.push_back(Vector3f(0, spring_const*5, 0.2f));
-				ghost_edge.push_back(Vector3f(j*k+1, spring_const*5, 0.2f));
-			}
-			else {
-				ghost_edge.push_back(Vector3f(j*k+1, spring_const*5, 0.2f));
-				ghost_edge.push_back(Vector3f(j*k, spring_const*5, 0.2f));
-			}
+			int currentParticle=(k-1)*numStrandParticles+j+numHairParticles;
+			vector<Vector4f> ghost_edge;
+			// 2nd value is index of hair particle that ghost particle i should have an edge with
+			ghost_edge.push_back(Vector4f(currentParticle,currentParticle-numHairParticles, spring_const*5, 0.2f));
+			ghost_edge.push_back(Vector4f(currentParticle,currentParticle-numHairParticles+1, spring_const*5, 0.2f));
 
 			ghost_edge_springs.push_back(ghost_edge);
 
 			// bending springs
-			vector<Vector3f> ghost_bend;
-			// first value is index of ghost particle that ghost particle i should have an edge with
+			vector<Vector4f> ghost_bend;
+			// 2nd value is index of ghost particle that ghost particle i should have an edge with
 			if ((j-1) > -1) {
-				ghost_bend.push_back(Vector3f(j*k-1 + numHairParticles, less_stiff_spring_const, rest_len));
+				ghost_bend.push_back(Vector4f(currentParticle,currentParticle-1, less_stiff_spring_const, rest_len));
 			}
 			if ((j+1) < numGhostParticles) {
-				ghost_bend.push_back(Vector3f(j*k+1 + numHairParticles, less_stiff_spring_const, rest_len));
+				ghost_bend.push_back(Vector4f(currentParticle,currentParticle+1, less_stiff_spring_const, rest_len));
 			}
 
 			ghost_bend_springs.push_back(ghost_bend);
@@ -185,11 +179,11 @@ Vector3f PendulumSystem::getParticleVelocity(vector<Vector3f> state, int x) {
 	return state[2*x + 1];
 }
 
-Vector3f PendulumSystem::addSpringForces(vector<Vector3f> state, vector<Vector3f> spr,
+Vector3f PendulumSystem::addSpringForces(vector<Vector3f> state, vector<Vector4f> spr,
 	Vector3f current_position) {
 	Vector3f force;
 	for (int i=0; i < spr.size(); i++) {
-		Vector3f disp = current_position - state[2*spr[i][0]];
+		Vector3f disp = current_position - state[2*spr[i][1]];
 		force += -spr[i][1]*(disp.abs() - spr[i][2])*disp/disp.abs();
 	}
 
@@ -202,7 +196,7 @@ void PendulumSystem::draw()
 	for (int k = 0; k < numStrands; k++){
 		for (int i = 0; i < numHairParticles; i++) {
 			int currentIndex=2*i+k*2*(numStrandParticles);
-			Vector3f pos = m_vVecState[currentIndex];//  position of particle i. YOUR CODE HERE
+			Vector3f pos = m_vVecState[currentIndex];
 			glPushMatrix();
 			glTranslatef(pos[0], pos[1], pos[2] );
 	        
@@ -211,7 +205,7 @@ void PendulumSystem::draw()
 			glutSolidSphere(hairWidth,10.0f,10.0f);
 	        
 	        // drawing cylinders at each particle point
-	        //TODO FIX WEIRD ANGLE ERRORS ...
+	        //TODO: FIX WEIRD ANGLE ERRORS ...
 	        if (drawCylinders){
 	             if (i+1<numHairParticles){
 	                 Vector3f pos2 = m_vVecState[currentIndex+2];
@@ -230,13 +224,12 @@ void PendulumSystem::draw()
 		}
 	}
     
-    //NOT YET SET FOR MULTIPLE STRANDS....
     if (drawGhostParticles){
     	for (int k=0; k<numStrands; k++){
     		for (int j = 0; j < numGhostParticles; j++) {
 	            int i = j + numHairParticles;
 	            int currentIndex= 2*(j+numHairParticles) + k*2*(numStrandParticles);
-	            Vector3f pos = m_vVecState[currentIndex] ;//  position of particle i. YOUR CODE HERE
+	            Vector3f pos = m_vVecState[currentIndex] ;
 	            glPushMatrix();
 	            glTranslatef(pos[0], pos[1], pos[2] );
 	            glutSolidSphere(0.025f,10.0f,10.0f);
@@ -250,20 +243,20 @@ void PendulumSystem::draw()
 
 	if (drawSprings) {
 		//drawSpring(torsion_springs);
-		//drawSpring(ghost_edge_springs);
+		drawSpring(ghost_edge_springs);
 		//drawSpring(ghost_bend_springs);
-		drawSpring(edge_springs);
+		//drawSpring(edge_springs);
 		//drawSpring(bend_springs);
 
 	}
 }
 
-void PendulumSystem::drawSpring(vector<vector<Vector3f>> springs){
+void PendulumSystem::drawSpring(vector<vector<Vector4f>> springs){
 	for(int i=0; i < springs.size(); i++) {
-    	vector<Vector3f> s = springs[i];
+    	vector<Vector4f> s = springs[i];
 		for (int j=0; j < s.size(); j++) {
-			Vector3f pos1 = m_vVecState[2*i];
-			Vector3f pos2 = m_vVecState[2*s[j][0]];
+			Vector3f pos1 = m_vVecState[2*s[j][0]];
+			Vector3f pos2 = m_vVecState[2*s[j][1]];
 
 			glDisable(GL_LIGHTING);
 			glBegin(GL_LINES);

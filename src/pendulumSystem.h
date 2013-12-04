@@ -25,7 +25,7 @@ public:
 	Vector3f getParticlePosition(vector<Vector3f> state, int x);
 	Vector3f getParticleVelocity(vector<Vector3f> state, int x);
 
-	Vector3f addSpringForces(vector<Vector3f> state, vector<Vector3f> spr, Vector3f current_position);
+	Vector3f addSpringForces(vector<Vector3f> state, vector<Vector4f> spr, Vector3f current_position);
 
 	float mass;
     Vector3f gravity;
@@ -35,13 +35,13 @@ public:
     float rest_len;
 
     vector<Vector3f> ghost_particles;
-    vector<vector<Vector3f>> edge_springs;
-    vector<vector<Vector3f>> ghost_edge_springs;
-    vector<vector<Vector3f>> bend_springs;
-    vector<vector<Vector3f>> ghost_bend_springs;
-    vector<vector<Vector3f>> torsion_springs;
+    vector<vector<Vector4f>> edge_springs;
+    vector<vector<Vector4f>> ghost_edge_springs;
+    vector<vector<Vector4f>> bend_springs;
+    vector<vector<Vector4f>> ghost_bend_springs;
+    vector<vector<Vector4f>> torsion_springs;
 
-    void drawSpring(vector<vector<Vector3f>> springs);
+    void drawSpring(vector<vector<Vector4f>> springs);
 
     int numStrands;
     int numStrandParticles;
