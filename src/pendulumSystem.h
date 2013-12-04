@@ -42,6 +42,7 @@ public:
     vector<vector<Vector3f>> torsion_springs;
 
     int numStrands;
+    int numStrandParticles;
 	void initializeStrand();
 
 	void moveBack() {

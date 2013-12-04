@@ -16,23 +16,22 @@ PendulumSystem::PendulumSystem(int numParticles):ParticleSystem(numParticles)
 	numStrands = 3;
 	numHairParticles = numParticles;
 	numGhostParticles = numParticles - 1;
-	m_numParticles = (numParticles + numGhostParticles) * numStrands;
+	m_numParticles = (numHairParticles + numGhostParticles) * numStrands;
+	numStrandParticles=numHairParticles+numGhostParticles;
 	drawSprings = false;
     drawGhostParticles=false;
     drawCylinders=false;
-    
+
 	for (int k = 1; k <= numStrands; k++){
 		
 		for (int i = 0; i < numHairParticles; i++) {
 			// position vector
 			if (i == 0) {
 				m_vVecState.push_back(Vector3f(0,0,0));
-				cout << m_vVecState.size() << " strand " << k << endl;
 			}
 
 			else {
-				m_vVecState.push_back(Vector3f(i*rest_len, k * 0.2f, 0));
-				cout << m_vVecState.size() << " strand " << k << " " << i*rest_len << " " << k* 0.2f << endl;
+				m_vVecState.push_back(Vector3f(i*rest_len, -1*(k-1) * 0.2f, 0));
 			}
 
 			// velocity vector
@@ -80,7 +79,7 @@ PendulumSystem::PendulumSystem(int numParticles):ParticleSystem(numParticles)
 		// GHOST PARTICLES (to form triangles)
 		for (int j = 0; j < numGhostParticles; j++) {
 			// position vector
-			m_vVecState.push_back(Vector3f((j+0.5)*rest_len, 0.2f, k * 0.2f));
+			m_vVecState.push_back(Vector3f((j+0.5)*rest_len, 0.2f, (k-1) * -0.2f));
 
 			// velocity vector
 			m_vVecState.push_back(Vector3f(0,0,0));
@@ -118,59 +117,62 @@ PendulumSystem::PendulumSystem(int numParticles):ParticleSystem(numParticles)
 vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
 {
 	vector<Vector3f> f;
-
 	vector<Vector3f> empty;
+	for (int k=0; k<numStrands; k++){
+		for (int i=0; i < numHairParticles; i++) {
+			int currentIndex = i+k*numStrandParticles;
+			Vector3f current_position = getParticlePosition(state, currentIndex);
+			Vector3f current_velocity = getParticleVelocity(state, currentIndex);
 
-	for (int i=0; i < numHairParticles; i++) {
-		Vector3f current_position = getParticlePosition(state, i);
-		Vector3f current_velocity = getParticleVelocity(state, i);
+			Vector3f force = Vector3f(0,0,0);
+			if (i == 0) {
+				force = Vector3f(0,0,0);
+			}
 
-		Vector3f force = Vector3f(0,0,0);
-		if (i == 0) {
-			force = Vector3f(0,0,0);
+			else {
+				force = (mass*gravity) - drag_const*current_velocity;
+
+				// edge springs
+				force += addSpringForces(state, edge_springs[i], current_position);
+				// bending springs
+				force += addSpringForces(state, bend_springs[i], current_position);
+				// torsion springs
+				force += addSpringForces(state, torsion_springs[i],	current_position);
+			}
+
+			f.push_back(current_velocity);
+			f.push_back(force/mass);
+
+			empty.push_back(current_velocity);
+			empty.push_back(Vector3f(0,0,0)); // 0 force
+
 		}
 
-		else {
+		for (int j=0; j < numGhostParticles; j++) {
+			int index = j + numHairParticles;
+			int currentIndex = j+numHairParticles+k*numStrandParticles;
+			Vector3f current_position = getParticlePosition(state, currentIndex);
+			Vector3f current_velocity = getParticleVelocity(state, currentIndex);
+
+			Vector3f force = Vector3f(0,0,0);
+
 			force = (mass*gravity) - drag_const*current_velocity;
 
 			// edge springs
-			force += addSpringForces(state, edge_springs[i], current_position);
+			force += addSpringForces(state, ghost_edge_springs[j], current_position);
 			// bending springs
-			force += addSpringForces(state, bend_springs[i], current_position);
-			// torsion springs
-			force += addSpringForces(state, torsion_springs[i],	current_position);
+			force += addSpringForces(state, ghost_bend_springs[j], current_position);
+
+			f.push_back(current_velocity);
+			f.push_back(force/mass);
+
+			empty.push_back(current_velocity);
+			empty.push_back(Vector3f(0,0,0)); // 0 force
+
 		}
-
-		f.push_back(current_velocity);
-		f.push_back(force/mass);
-
-		empty.push_back(Vector3f(0,0,0));
-		empty.push_back(Vector3f(0,0,0));
 	}
-
-	for (int j=0; j < numGhostParticles; j++) {
-		int index = j + numHairParticles;
-		Vector3f current_position = getParticlePosition(state, index);
-		Vector3f current_velocity = getParticleVelocity(state, index);
-
-		Vector3f force = Vector3f(0,0,0);
-
-		force = (mass*gravity) - drag_const*current_velocity;
-
-		// edge springs
-		force += addSpringForces(state, ghost_edge_springs[j], current_position);
-		// bending springs
-		force += addSpringForces(state, ghost_bend_springs[j], current_position);
-
-		f.push_back(current_velocity);
-		f.push_back(force/mass);
-
-		empty.push_back(Vector3f(0,0,0));
-		empty.push_back(Vector3f(0,0,0));
-	}
-
-	//return f;
-	return empty;
+	return f;
+	//return empty;
 }
 
 Vector3f PendulumSystem::getParticlePosition(vector<Vector3f> state, int x) {
@@ -197,8 +199,8 @@ void PendulumSystem::draw()
 {
 	for (int k = 0; k < numStrands; k++){
 		for (int i = 0; i < numHairParticles; i++) {
-			Vector3f pos = m_vVecState[2*i+k*(numHairParticles+numGhostParticles)];//  position of particle i. YOUR CODE HERE
-			//cout << "strand " << k << " " << 2*i+k*(numHairParticles+numGhostParticles) << " " << pos << endl;
+			int currentIndex=2*i+k*2*(numStrandParticles);
+			Vector3f pos = m_vVecState[currentIndex];//  position of particle i. YOUR CODE HERE
 			glPushMatrix();
 			glTranslatef(pos[0], pos[1], pos[2] );
 	        
@@ -209,7 +211,7 @@ void PendulumSystem::draw()
 	        // drawing cylinders at each particle point
 	        if (drawCylinders){
 	             if (i+1<numHairParticles){
-	                 Vector3f pos2 = m_vVecState[2*(i+1)];
+	                 Vector3f pos2 = m_vVecState[currentIndex+2];
 	                 float angleRad = atanf((pos[0]-pos2[0])/(pos[1]-pos2[1]));
 	                 float angleDeg = angleRad * 180 / 3.1415296;
 	                 glRotatef(-angleDeg,0,0,1.0f);
@@ -224,16 +226,21 @@ void PendulumSystem::draw()
 		}
 	}
     
+    //NOT YET SET FOR MULTIPLE STRANDS....
     if (drawGhostParticles){
-        for (int j = 0; j < numGhostParticles; j++) {
-            int i = j + numHairParticles;
-            Vector3f pos = m_vVecState[2*i] ;//  position of particle i. YOUR CODE HERE
-            glPushMatrix();
-            glTranslatef(pos[0], pos[1], pos[2] );
-            glutSolidSphere(0.025f,10.0f,10.0f);
-            
-            glPopMatrix();
-        }
+    	for (int k=0; k<numStrands; k++){
+    		for (int j = 0; j < numGhostParticles; j++) {
+	            int i = j + numHairParticles;
+	            int currentIndex= 2*(j+numHairParticles) + k*2*(numStrandParticles);
+	            Vector3f pos = m_vVecState[currentIndex] ;//  position of particle i. YOUR CODE HERE
+	            glPushMatrix();
+	            glTranslatef(pos[0], pos[1], pos[2] );
+	            glutSolidSphere(0.025f,10.0f,10.0f);
+	            
+	            glPopMatrix();
+	        }
+    	}
+
     }
     
 
