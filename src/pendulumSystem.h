@@ -9,7 +9,7 @@
 class PendulumSystem: public ParticleSystem
 {
 public:
-	PendulumSystem(int numParticles);
+	PendulumSystem(int numParticles, int howManyStrands);
 	
 	vector<Vector3f> evalF(vector<Vector3f> state);
 
@@ -40,6 +40,8 @@ public:
     vector<vector<Vector3f>> bend_springs;
     vector<vector<Vector3f>> ghost_bend_springs;
     vector<vector<Vector3f>> torsion_springs;
+
+    void drawSpring(vector<vector<Vector3f>> springs);
 
     int numStrands;
     int numStrandParticles;

@@ -24,7 +24,8 @@ namespace
     ParticleSystem *system;
     TimeStepper * timeStepper;
     float timeStep;
-    int numParticles;
+    int numParticles=4;
+    int numStrands=1;
 
   // initialize your particle systems
   ///TODO: read argv here. set timestepper , step size etc
@@ -38,10 +39,17 @@ namespace
     if(argc == 2){
         istringstream is(argv[1]);
         is>>numParticles;
-        system = new PendulumSystem(numParticles);
+        system = new PendulumSystem(numParticles,numStrands);
+    }
+    else if (argc == 3){
+        istringstream is(argv[1]);
+        is>>numParticles;
+        istringstream is2(argv[2]);
+        is2>>numStrands;
+        system = new PendulumSystem(numParticles,numStrands);
     }
     else {
-        system = new PendulumSystem(4);
+        system = new PendulumSystem(numParticles,numStrands);
     }
   }
 
@@ -128,7 +136,7 @@ namespace
             break;
         }
         case 'r':{ //resets system
-            system = new PendulumSystem(numParticles);
+            system = new PendulumSystem(numParticles,numStrands);
             break;
         }
         default:

@@ -4,7 +4,7 @@
 
 #include <math.h>
 
-PendulumSystem::PendulumSystem(int numParticles):ParticleSystem(numParticles)
+PendulumSystem::PendulumSystem(int numParticles, int howManyStrands):ParticleSystem(numParticles)
 {
 	mass = 0.02f;
     gravity = Vector3f(0.0f, -1.0f, 0.0f);
@@ -13,7 +13,7 @@ PendulumSystem::PendulumSystem(int numParticles):ParticleSystem(numParticles)
 	less_stiff_spring_const = 1.0f;
 	rest_len = 0.5f;
 
-	numStrands = 1;
+	numStrands = howManyStrands;
 	numHairParticles = numParticles;
 	numGhostParticles = numParticles - 1;
 	m_numParticles = (numHairParticles + numGhostParticles) * numStrands;
@@ -40,12 +40,14 @@ PendulumSystem::PendulumSystem(int numParticles):ParticleSystem(numParticles)
 			// SPRINGS
 			// edge springs
 			vector<Vector3f> edge;
-			if ((i-1) > -1) {
-				edge.push_back(Vector3f(i*k-1, spring_const, rest_len)); // took out multiplying spring_const*i?
+			if ((i-1) > -1) { //if it's not the first particle, put a spring to the previous one
+				edge.push_back(Vector3f((k-1)*numStrandParticles+i-1, spring_const, rest_len)); // took out multiplying spring_const*i?
+				cout << edge_springs.size() << " " << i << " "<<(k-1)*numStrandParticles+i-1 << "a" << endl;;
 			}
 
-			if ((i+1) < numHairParticles) {
-				edge.push_back(Vector3f(i*k+1, spring_const, rest_len)); // same here
+			if ((i+1) < numHairParticles) { //if it's not the last particle, put a spring to the next one
+				edge.push_back(Vector3f((k-1)*numStrandParticles+i+1, spring_const, rest_len)); // same here
+				cout << edge_springs.size() << " " << i << " "<<(k-1)*numStrandParticles+i+1 << "b" <<endl;;
 			}
 
 			edge_springs.push_back(edge);
@@ -172,7 +174,7 @@ vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
 		}
 	}
 
-	return f; //f has forces, empty is no forces
+	return empty; //f has forces, empty is no forces
 }
 
 Vector3f PendulumSystem::getParticlePosition(vector<Vector3f> state, int x) {
@@ -247,40 +249,30 @@ void PendulumSystem::draw()
     
 
 	if (drawSprings) {
+		//drawSpring(torsion_springs);
+		//drawSpring(ghost_edge_springs);
+		//drawSpring(ghost_bend_springs);
+		drawSpring(edge_springs);
+		//drawSpring(bend_springs);
 
-		for(int i=0; i < torsion_springs.size(); i++) {
-	    	vector<Vector3f> s = torsion_springs[i];
-			for (int j=0; j < s.size(); j++) {
-				Vector3f pos1 = m_vVecState[2*i];
-				Vector3f pos2 = m_vVecState[2*s[j][0]];
+	}
+}
 
-				glDisable(GL_LIGHTING);
-				glBegin(GL_LINES);
-				glColor3f(1.0,1.0,1.0);
-				glVertex3f(pos1[0], pos1[1], pos1[2]);
-				glVertex3f(pos2[0], pos2[1], pos2[2]);
-				glEnd();
-				glEnable(GL_LIGHTING);
-                
-			}
-		}
+void PendulumSystem::drawSpring(vector<vector<Vector3f>> springs){
+	for(int i=0; i < springs.size(); i++) {
+    	vector<Vector3f> s = springs[i];
+		for (int j=0; j < s.size(); j++) {
+			Vector3f pos1 = m_vVecState[2*i];
+			Vector3f pos2 = m_vVecState[2*s[j][0]];
 
-		for(int i=0; i < ghost_edge_springs.size(); i++) {
-	    	vector<Vector3f> s = ghost_edge_springs[i];
-
-			for (int j=0; j < s.size(); j++) {
-				Vector3f pos1 = m_vVecState[2*(i + numHairParticles)];
-				Vector3f pos2 = m_vVecState[2*s[j][0]];
-
-				glDisable(GL_LIGHTING);
-				glBegin(GL_LINES);
-				glColor3f(1.0,1.0,1.0);
-				glVertex3f(pos1[0], pos1[1], pos1[2]);
-				glVertex3f(pos2[0], pos2[1], pos2[2]);
-				glEnd();
-				glEnable(GL_LIGHTING);
-                
-			}
+			glDisable(GL_LIGHTING);
+			glBegin(GL_LINES);
+			glColor3f(1.0,1.0,1.0);
+			glVertex3f(pos1[0], pos1[1], pos1[2]);
+			glVertex3f(pos2[0], pos2[1], pos2[2]);
+			glEnd();
+			glEnable(GL_LIGHTING);
+            
 		}
 	}
 }
