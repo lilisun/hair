@@ -30,8 +30,8 @@ PendulumSystem::PendulumSystem(int numParticles, int howManyStrands):ParticleSys
     drawCylinders=false;
     hasForce=false;
 
-    int grid_size = max(numParticles, howManyStrands);
-    this->grid = Grid(grid_size, grid_size, grid_size);
+    int grid_size = max(numParticles*rest_len, howManyStrands*strand_offset);
+    this->grid = Grid(grid_size, grid_size, grid_size, 0.2f);
 
 	for (int k = 1; k <= numStrands; k++){
 		//for making a grid of hairs
@@ -126,6 +126,16 @@ PendulumSystem::PendulumSystem(int numParticles, int howManyStrands):ParticleSys
 
 vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
 {
+	// reinitialize grid
+	grid.reset();
+	for (int k=0; k<numStrands;k++) {
+	 	for (int i=0; i<numHairParticles; i++) {			
+	 		int currentIndex = i+k*numStrandParticles;
+	 		Vector3f current_position = getParticlePosition(state, currentIndex);
+	 		grid.addParticle(current_position, currentIndex);
+	 	}
+	}
+
 	vector<Vector3f> f;
 	vector<Vector3f> empty;
 	for (int k=0; k<numStrands; k++){
@@ -147,23 +157,24 @@ vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
 				// bending springs
 				force += addSpringForces(state, bend_springs[currentSpringIndex], current_position);
 				// torsion springs
-				force += addSpringForces(state, torsion_springs[currentSpringIndex],	current_position);
-			}
+				force += addSpringForces(state, torsion_springs[currentSpringIndex], current_position);
 
-			// check for collisions in same cell
-			if (grid->numParticlesInCell(current_position) > 1) {
-				// iterate through other particles in cell
-				vector<int> cell = grid->getCell(current_position);
-				for (int p=0; p < cell.size(); p++) {
-					int new_index = cell[p];
+				//check for collisions in same cell
+				if (grid.numParticlesInCell(current_position) > 1) {
+					// iterate through other particles in cell
+					vector<int> cell = grid.getCell(current_position);
+					for (int p=0; p < cell.size(); p++) {
+						int new_index = cell[p];
 
-					// add force to repel particles
-					if (p != currentIndex) {
-						Vector3f diff = current_position - getParticlePosition(state, new_index);
-						Vector3f dir = current_velocity.normalized().negate(); // negate unit direction of velocity
-						Vector3f repel = diff.normalized() * dir * Vector3f::dot(diff, current_velocity); // don't know if dot product is the best thing to use here...
-						
-						force += repel;
+						// add force to repel particles
+						if (new_index != currentIndex && current_velocity.abs() != 0) {
+						  cout << "hi" << endl;
+							Vector3f diff = current_position - getParticlePosition(state, new_index);
+							Vector3f dir = current_velocity.normalized();
+							dir.negate(); // negate unit direction of velocity
+							Vector3f repel = dir * diff.abs()*.5;
+							force += repel;
+						}
 					}
 				}
 			}
@@ -173,7 +184,6 @@ vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
 
 			empty.push_back(Vector3f(0,0,0));
 			empty.push_back(Vector3f(0,0,0)); // 0 force
-
 		}
 
 		for (int j=0; j < numGhostParticles; j++) {
