@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "particleSystem.h"
+#include "grid.h"
 
 class PendulumSystem: public ParticleSystem
 {
@@ -45,6 +46,8 @@ public:
     vector<vector<Vector4f>> torsion_springs;
 
     void drawSpring(vector<vector<Vector4f>> springs);
+
+    Grid grid;
 
     int numStrands;
     int numStrandParticles;

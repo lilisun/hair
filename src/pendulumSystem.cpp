@@ -1,5 +1,6 @@
 
 #include "pendulumSystem.h"
+#include "grid.h"
 #include <iostream>
 
 #include <math.h>
@@ -23,18 +24,25 @@ PendulumSystem::PendulumSystem(int numParticles, int howManyStrands):ParticleSys
     drawCylinders=false;
     hasForce=false;
 
+    int grid_size = max(numParticles, howManyStrands);
+    this.grid = Grid(grid_size, grid_size, grid_size);
+
 	for (int k = 1; k <= numStrands; k++){
 	        float first = sqrt(pow(rest_len, 2.0f) - pow((k-1)*strand_offset, 2.0f)); // offset of first particle in x direction
 	        float h_offset = rest_len - first;
 		for (int i = 0; i < numHairParticles; i++) {
 			// position vector
+			Vector3f pos;
 			if (i == 0) {
-			  m_vVecState.push_back(Vector3f(0,-1*(k-1)*strand_offset,0));
+			  pos = Vector3f(0,-1*(k-1)*strand_offset,0);
 			}
 
 			else {
-			  m_vVecState.push_back(Vector3f((i*rest_len), -1*(k-1) * strand_offset, 0)); //start each strand not in the same place
+			  pos = Vector3f((i*rest_len), -1*(k-1) * strand_offset, 0); //start each strand not in the same place
 			}
+
+			m_vVecState.push_back(pos);
+			grid.addParticle(pos);
 
 			// velocity vector
 			m_vVecState.push_back(Vector3f(0,0,0));
@@ -109,6 +117,14 @@ PendulumSystem::PendulumSystem(int numParticles, int howManyStrands):ParticleSys
 			ghost_bend_springs.push_back(ghost_bend);
 		}
 
+	}
+
+	for (int i=0; i < 3; i++) {
+		for (int j=0; j < 3; j++) {
+			for (int k=0; k < 3; k++) {
+
+			}
+		}
 	}
 }
 
