@@ -43,7 +43,7 @@ PendulumSystem::PendulumSystem(int numParticles, int howManyStrands):ParticleSys
 			// position vector
 			Vector3f pos=Vector3f((i*rest_len), yPos, zPos);
 			m_vVecState.push_back(pos);
-			grid.addParticle(pos,m_vVecState.size()-1);
+			grid.addParticle(pos, m_vVecState.size()-1);
 
 			// velocity vector
 			m_vVecState.push_back(Vector3f(0,0,0));
@@ -120,13 +120,8 @@ PendulumSystem::PendulumSystem(int numParticles, int howManyStrands):ParticleSys
 
 	}
 
-	for (int i=0; i < 3; i++) {
-		for (int j=0; j < 3; j++) {
-			for (int k=0; k < 3; k++) {
+	cout << grid.printGrid() << endl;
 
-			}
-		}
-	}
 }
 
 vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)

@@ -17,7 +17,7 @@ public:
 	int y;
 	int z;
 
-	vector<int> findCell(Vector3f position);
+	vector<int>* findCell(Vector3f position);
 	void addParticle(Vector3f position, int index);
 	int numParticlesInCell(Vector3f position);
 

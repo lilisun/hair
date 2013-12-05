@@ -29,22 +29,22 @@ Grid::Grid(int xDim, int yDim, int zDim) {
 	}
 }
 
-vector<int> Grid::findCell(Vector3f position) {
+vector<int>* Grid::findCell(Vector3f position) {
 	int x = floor(position.x()) + this->x;
 	int y = floor(position.y()) + this->y;
 	int z = floor(position.z()) + this->z;
 
-	return g[x][y][z];
+	return &g[x][y][z];
 }
 
 void Grid::addParticle(Vector3f position, int index) {
-	vector<int> cell = findCell(position);
-	cell.push_back(index);
+	vector<int>* cell = findCell(position);
+	cell->push_back(index);
 }
 
 int Grid::numParticlesInCell(Vector3f position) {
-	vector<int> cell = findCell(position);
-	return cell.size();
+	vector<int>* cell = findCell(position);
+	return cell->size();
 }
 
 string Grid::printGrid(){
