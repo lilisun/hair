@@ -82,8 +82,8 @@ void Grid::drawGrid() {
 	glBegin(GL_LINES);
 	for (int i=0; i < 2*this->x; i++) {
 		int index = i - this->x;
-		glVertex3f(index,-this->y);
-		glVertex3f(index,this->y);
+		glVertex3f(index,-this->y,0);
+		glVertex3f(index,this->y,0);
 	}
 	glEnd();
 }

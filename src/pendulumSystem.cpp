@@ -120,7 +120,7 @@ PendulumSystem::PendulumSystem(int numParticles, int howManyStrands):ParticleSys
 
 	}
 
-	cout << grid.printGrid() << endl;
+	//cout << grid.printGrid() << endl;
 
 }
 
@@ -151,16 +151,21 @@ vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
 			}
 
 			// check for collisions in same cell
-			if (grid->numParticlesInCell(current_position) > 1) {
+			if (grid.numParticlesInCell(current_position) > 1) {
 				// iterate through other particles in cell
-				vector<int> cell = grid->getCell(current_position);
+				vector<int> cell = grid.getCell(current_position);
 				for (int p=0; p < cell.size(); p++) {
 					int new_index = cell[p];
 
 					// add force to repel particles
 					if (p != currentIndex) {
 						Vector3f diff = current_position - getParticlePosition(state, new_index);
-						Vector3f dir = current_velocity.normalized().negate(); // negate unit direction of velocity
+						Vector3f dir = current_velocity.normalized();
+						dir.negate(); // negate unit direction of velocity
+						if (current_velocity==Vector3f(0,0,0)){
+							dir=Vector3f(0,0,0);
+						}
+						cout << "diff " << endl;
 						Vector3f repel = diff.normalized() * dir * Vector3f::dot(diff, current_velocity); // don't know if dot product is the best thing to use here...
 						
 						force += repel;
