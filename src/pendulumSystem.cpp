@@ -31,7 +31,7 @@ PendulumSystem::PendulumSystem(int numParticles, int howManyStrands):ParticleSys
     hasForce=false;
 
     int grid_size = max(numParticles, howManyStrands);
-    this.grid = Grid(grid_size, grid_size, grid_size);
+    this->grid = Grid(grid_size, grid_size, grid_size);
 
 	for (int k = 1; k <= numStrands; k++){
 		//for making a grid of hairs
@@ -41,21 +41,9 @@ PendulumSystem::PendulumSystem(int numParticles, int howManyStrands):ParticleSys
 
 		for (int i = 0; i < numHairParticles; i++) {
 			// position vector
-<<<<<<< HEAD
-			Vector3f pos;
-			if (i == 0) {
-			  pos = Vector3f(0,-1*(k-1)*strand_offset,0);
-			}
-
-			else {
-			  pos = Vector3f((i*rest_len), -1*(k-1) * strand_offset, 0); //start each strand not in the same place
-			}
-=======
-			m_vVecState.push_back(Vector3f((i*rest_len), yPos, zPos));
->>>>>>> 879dbec47a7880a051521f07c59e92dd430570b6
-
+			Vector3f pos=Vector3f((i*rest_len), yPos, zPos);
 			m_vVecState.push_back(pos);
-			grid.addParticle(pos);
+			grid.addParticle(pos,m_vVecState.size()-1);
 
 			// velocity vector
 			m_vVecState.push_back(Vector3f(0,0,0));

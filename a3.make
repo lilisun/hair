@@ -70,6 +70,7 @@ endif
 OBJECTS := \
 	$(OBJDIR)/camera.o \
 	$(OBJDIR)/ClothSystem.o \
+	$(OBJDIR)/grid.o \
 	$(OBJDIR)/main.o \
 	$(OBJDIR)/particleSystem.o \
 	$(OBJDIR)/pendulumSystem.o \
@@ -139,6 +140,9 @@ $(OBJDIR)/camera.o: src/camera.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 $(OBJDIR)/ClothSystem.o: src/ClothSystem.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(CXXFLAGS) -o "$@" -c "$<"
+$(OBJDIR)/grid.o: src/grid.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 $(OBJDIR)/main.o: src/main.cpp
