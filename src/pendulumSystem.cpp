@@ -31,7 +31,7 @@ PendulumSystem::PendulumSystem(int numParticles, int howManyStrands):ParticleSys
     hasForce=false;
 
     int grid_size = max(numParticles*rest_len, howManyStrands*strand_offset);
-    this->grid = Grid(grid_size, grid_size, grid_size, 0.2f);
+    this->grid = Grid(grid_size, grid_size, grid_size, 0.15f);
 
 	for (int k = 1; k <= numStrands; k++){
 		//for making a grid of hairs
