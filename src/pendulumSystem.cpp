@@ -168,7 +168,6 @@ vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
 
 						// add force to repel particles
 						if (new_index != currentIndex && current_velocity.abs() != 0) {
-						  cout << "hi" << endl;
 							Vector3f diff = current_position - getParticlePosition(state, new_index);
 							Vector3f dir = current_velocity.normalized();
 							dir.negate(); // negate unit direction of velocity
