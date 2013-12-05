@@ -30,6 +30,8 @@ public:
 
 	Vector3f addSpringForces(vector<Vector3f> state, vector<Vector4f> spr, Vector3f current_position);
 
+	float hairWidth;
+	float cellSize;
 	float mass;
     Vector3f gravity;
     float drag_const;
@@ -53,10 +55,14 @@ public:
     int numStrandParticles;
 	void initializeStrand();
 
+	void addWind();
+	bool wind;
+
 	void moveBack() {
 		return;}
 	void moveForward() {
 		return;}
+
 private:
 	int numHairParticles;
 	int numGhostParticles;

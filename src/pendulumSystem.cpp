@@ -15,6 +15,9 @@ PendulumSystem::PendulumSystem(int numParticles, int howManyStrands):ParticleSys
 	less_stiff_spring_const = 1.0f;
 	rest_len = 0.5f;
 
+
+	hairWidth = 0.03f;
+
 	//hair constants
 	strand_offset = 0.2f;
 	numStrands = howManyStrands;
@@ -30,11 +33,13 @@ PendulumSystem::PendulumSystem(int numParticles, int howManyStrands):ParticleSys
     drawGhostParticles=false;
     drawCylinders=false;
     hasForce=false;
+    wind = false;
 
-    float cellSize=0.17f;
+    cellSize=0.1f;
     int grid_size = max((numParticles+howManyStrands)*rest_len, howManyStrands*strand_offset);
     this->grid = Grid(grid_size, grid_size, grid_size, cellSize);
 
+    srand (time(NULL));
 	for (int k = 1; k <= numStrands; k++){
 		//for making a grid of hairs
 		int colNum=(k-1)/rowLength;
@@ -174,13 +179,19 @@ vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
 							Vector3f diff = current_position - getParticlePosition(state, new_index);
 							Vector3f dir = current_velocity.normalized();
 							dir.negate(); // negate unit direction of velocity
-							srand (time(NULL));
-							float zOffset = 0.05 * ((float)rand()/RAND_MAX) + 1; // either .05 or -.05
 							//dir = dir * Vector3f(1.0f,1.0f,1.0f+zOffset); //try to push it in another direction so it's not bound in 1 plane
-							Vector3f repel = dir * diff.abs()* 1.0f;
+							Vector3f repel = dir * (cellSize - diff.abs())* 0.05f;
 							force += repel;
 						}
 					}
+				}
+
+				// wind
+				if(wind) {
+				  float rand_x = -1.0f + (float)rand() / (RAND_MAX/2.0f);
+				  float rand_y = -1.0f + (float)rand() / (RAND_MAX/2.0f);
+				  float rand_z = -1.0f + (float)rand() / (RAND_MAX/2.0f);
+				  force += Vector3f(rand_x, rand_y, rand_z);
 				}
 			}
 
@@ -213,6 +224,10 @@ vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
 			empty.push_back(Vector3f(0,0,0)); // 0 force
 
 		}
+	}
+
+	if (wind) {
+		wind = false;
 	}
 
 	if (hasForce){
@@ -253,8 +268,6 @@ void PendulumSystem::draw()
 			Vector3f pos = m_vVecState[currentIndex];
 			glPushMatrix();
 			glTranslatef(pos[0], pos[1], pos[2] );
-	        
-	        float hairWidth=.03f;
 	        
 			glutSolidSphere(hairWidth,10.0f,10.0f);
 	        
@@ -392,4 +405,8 @@ void PendulumSystem::addForce(){
 		hasForce = true;
 	}
     
+}
+
+void PendulumSystem::addWind() {
+	wind = true;
 }

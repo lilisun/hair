@@ -26,6 +26,7 @@ namespace
     float timeStep;
     int numParticles=4;
     int numStrands=1;
+    int counter = 0;
 
   // initialize your particle systems
   ///TODO: read argv here. set timestepper , step size etc
@@ -141,6 +142,13 @@ namespace
         }
         case 'f':{
             system->addForce();
+            break;
+        }
+        case 'w':{
+            counter += 1;
+            if (counter%4 == 0) {
+                system->addWind();
+            }
             break;
         }
         default:
