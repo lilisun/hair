@@ -7,16 +7,21 @@
 
 using namespace std;
 
-Grid::Grid(int xDim, int yDim, int zDim) {
+Grid::Grid(int xDim, int yDim, int zDim, float len) {
 	this->x = xDim;
 	this->y = yDim;
 	this->z = zDim;
+	this->len = len;
 
-	for (int i=0; i < 2*x; i++) {
+	int x_total = ceil(2*x/len);
+	int y_total = ceil(2*y/len);
+	int z_total = ceil(2*z/len);
+
+	for (int i=0; i < x_total; i++) {
 		vector<vector<vector<int>>> temp;
-		for (int j=0; j < 2*y; j++) {
+		for (int j=0; j < y_total; j++) {
 			vector<vector<int>> temp2;
-			for (int k=0; k < 2*z; k++) {
+			for (int k=0; k < z_total; k++) {
 				vector<int> cell;
 				cell.push_back(-1);
 				temp2.push_back(cell);
@@ -30,33 +35,33 @@ Grid::Grid(int xDim, int yDim, int zDim) {
 }
 
 vector<int>* Grid::findCell(Vector3f position) {
-	int x = floor(position.x()) + this->x;
-	int y = floor(position.y()) + this->y;
-	int z = floor(position.z()) + this->z;
-
+	int x = floor(position.x()/len) + this->x/len;
+	int y = floor(position.y()/len) + this->y/len;
+	int z = floor(position.z()/len) + this->z/len;
 	return &g[x][y][z];
 }
 
 vector<int> Grid::getCell(Vector3f position) {
-	int x = floor(position.x()) + this->x;
-	int y = floor(position.y()) + this->y;
-	int z = floor(position.z()) + this->z;
+	int x = floor(position.x()/len) + this->x/len;
+	int y = floor(position.y()/len) + this->y/len;
+	int z = floor(position.z()/len) + this->z/len;
 
 	return g[x][y][z];
 }
 
 void Grid::addParticle(Vector3f position, int index) {
 	vector<int>* cell = findCell(position);
-	if ((cell->size() == 1) && (cell->front() == -1)) {
+	if (cell->front() == -1) {
 		cell->clear();
+		nonEmpty.push_back(cell);
 	}
 
 	cell->push_back(index);
 }
 
 int Grid::numParticlesInCell(Vector3f position) {
-	vector<int>* cell = findCell(position);
-	return cell->size();
+	vector<int> cell = getCell(position);
+	return cell.size();
 }
 
 string Grid::printGrid(){
@@ -79,11 +84,28 @@ string Grid::printGrid(){
 }
 
 void Grid::drawGrid() {
+	glLineWidth(2);
 	glBegin(GL_LINES);
-	for (int i=0; i < 2*this->x; i++) {
-		int index = i - this->x;
-		glVertex3f(index,-this->y,0);
-		glVertex3f(index,this->y,0);
+	for (float i=0; i < 2*x; i+=len) {
+		float index = i - this->x;
+		glVertex3f(index,-this->y, 0);
+		glVertex3f(index,this->y, 0);
+	}
+
+	for (float j=0; j < 2*y; j+=len) {
+		float index = j - this->y;
+		glVertex3f(-this->x, index, 0);
+		glVertex3f(this->x, index, 0);
 	}
 	glEnd();
+}
+
+void Grid::reset() {
+	for (int i=0; i < nonEmpty.size(); i++) {
+		vector<int>* cell = nonEmpty[i];
+		cell->clear();
+		cell->push_back(-1);
+	}
+
+	nonEmpty.clear();
 }

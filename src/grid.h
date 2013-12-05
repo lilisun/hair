@@ -12,10 +12,11 @@ using namespace std;
 class Grid
 {
 public:
-	Grid(int xDim=0, int yDim=0, int zDim=0);
+	Grid(int xDim=0, int yDim=0, int zDim=0, float len=0);
 	int x;
 	int y;
 	int z;
+	float len;
 
 	vector<int> getCell(Vector3f position);
 	vector<int>* findCell(Vector3f position);
@@ -24,6 +25,9 @@ public:
 
 	string printGrid();
 	void drawGrid();
+	void reset();
+
+	vector<vector<int>*> nonEmpty;
 
 private:
     vector<vector<vector<vector<int>>>> g;

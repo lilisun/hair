@@ -30,8 +30,8 @@ PendulumSystem::PendulumSystem(int numParticles, int howManyStrands):ParticleSys
     drawCylinders=false;
     hasForce=false;
 
-    int grid_size = max(numParticles, howManyStrands);
-    this->grid = Grid(grid_size, grid_size, grid_size);
+    int grid_size = max((numParticles+howManyStrands)*rest_len, howManyStrands*strand_offset);
+    this->grid = Grid(grid_size, grid_size, grid_size, 0.17f);
 
 	for (int k = 1; k <= numStrands; k++){
 		//for making a grid of hairs
@@ -126,6 +126,16 @@ PendulumSystem::PendulumSystem(int numParticles, int howManyStrands):ParticleSys
 
 vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
 {
+	// reinitialize grid
+	grid.reset();
+	for (int k=0; k<numStrands;k++) {
+	 	for (int i=0; i<numHairParticles; i++) {			
+	 		int currentIndex = i+k*numStrandParticles;
+	 		Vector3f current_position = getParticlePosition(state, currentIndex);
+	 		grid.addParticle(current_position, currentIndex);
+	 	}
+	}
+
 	vector<Vector3f> f;
 	vector<Vector3f> empty;
 	for (int k=0; k<numStrands; k++){
@@ -147,28 +157,27 @@ vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
 				// bending springs
 				force += addSpringForces(state, bend_springs[currentSpringIndex], current_position);
 				// torsion springs
-				force += addSpringForces(state, torsion_springs[currentSpringIndex],	current_position);
-			}
 
-			// check for collisions in same cell
-			if (grid.numParticlesInCell(current_position) > 1) {
-				// iterate through other particles in cell
-				vector<int> cell = grid.getCell(current_position);
-				for (int p=0; p < cell.size(); p++) {
-					int new_index = cell[p];
+				force += addSpringForces(state, torsion_springs[currentSpringIndex], current_position);
 
-					// add force to repel particles
-					if (p != currentIndex) {
-						Vector3f diff = current_position - getParticlePosition(state, new_index);
-						Vector3f dir = current_velocity.normalized();
-						dir.negate(); // negate unit direction of velocity
-						if (current_velocity==Vector3f(0,0,0)){
-							dir=Vector3f(0,0,0);
+				//check for collisions in same cell
+				if (grid.numParticlesInCell(current_position) > 1) {
+					// iterate through other particles in cell
+					vector<int> cell = grid.getCell(current_position);
+					for (int p=0; p < cell.size(); p++) {
+						int new_index = cell[p];
+
+						// add force to repel particles
+						if (new_index != currentIndex && current_velocity.abs() != 0) {
+							Vector3f diff = current_position - getParticlePosition(state, new_index);
+							Vector3f dir = current_velocity.normalized();
+							dir.negate(); // negate unit direction of velocity
+							srand (time(NULL));
+							float zOffset = 0.5 * ((float)rand()/RAND_MAX) + 1;
+							dir = dir * Vector3f(1.0f,1.0f,1.0f+zOffset); //try to push it in another direction so it's not bound in 1 plane
+							Vector3f repel = dir * diff.abs()* 1.0f;
+							force += repel;
 						}
-						cout << "diff " << endl;
-						Vector3f repel = diff.normalized() * dir * Vector3f::dot(diff, current_velocity); // don't know if dot product is the best thing to use here...
-						
-						force += repel;
 					}
 				}
 			}
@@ -178,7 +187,6 @@ vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
 
 			empty.push_back(Vector3f(0,0,0));
 			empty.push_back(Vector3f(0,0,0)); // 0 force
-
 		}
 
 		for (int j=0; j < numGhostParticles; j++) {
@@ -236,7 +244,7 @@ Vector3f PendulumSystem::addSpringForces(vector<Vector3f> state, vector<Vector4f
 // render the system (ie draw the particles)
 void PendulumSystem::draw()
 {
-	grid.drawGrid();
+	//grid.drawGrid();
 	for (int k = 0; k < numStrands; k++){
 		for (int i = 0; i < numHairParticles; i++) {
 			int currentIndex=2*i+k*2*(numStrandParticles);
@@ -244,19 +252,40 @@ void PendulumSystem::draw()
 			glPushMatrix();
 			glTranslatef(pos[0], pos[1], pos[2] );
 	        
-	        float hairWidth=.05f;
+	        float hairWidth=.03f;
 	        
 			glutSolidSphere(hairWidth,10.0f,10.0f);
 	        
 	        // drawing cylinders at each particle point
-	        //TODO: FIX WEIRD ANGLE ERRORS ...
+	        //this is ugly code i'm sorry lol
 	        if (drawCylinders){
 	             if (i+1<numHairParticles){
 	                 Vector3f pos2 = m_vVecState[currentIndex+2];
 	                 float distance = sqrt( pow(pos[0]-pos2[0],2.0f) + pow(pos[1]-pos2[1],2.0f) + pow(pos[2]-pos2[2],2.0f));
-	                 float angleRad = atanf((pos[0]-pos2[0])/(pos[1]-pos2[1]));
+	                 //rotate in xy plane
+	                 float opp=pos[0]-pos2[0];
+	                 float adj=pos[1]-pos2[1];
+	                 float angleRad = atanf(opp/adj);
 	                 float angleDeg = angleRad * 180 / 3.1415296;
+	                 if (opp>0 && adj < 0){ //4th quad, add 270
+	                 	angleDeg += 270;
+	                 }else if (opp<0 && adj < 0){ //3rd quad, add 180
+	                 	angleDeg += 180;
+	                 }
 	                 glRotatef(-angleDeg,0,0,1.0f);
+
+	                 //rotate in yz plane
+	                 opp=pos[2]-pos2[2];
+	                 adj=pos[1]-pos2[1];
+	                 angleRad = atanf(opp/adj);
+	                 angleDeg = angleRad * 180 / 3.1415926;
+	                 if (opp>0 && adj < 0){ //4th quad, add 270
+	                 	angleDeg += 270;
+	                 }else if (opp<0 && adj < 0){ //3rd quad, add 180
+	                 	angleDeg += 180;
+	                 }
+	                 glRotatef(angleDeg,1.0f,0,0);
+
 	                 glRotatef(90.0f,1.0f,0.0f,0.0f); //switch y and z axis since cylinders draw on the z axis
 	                 GLUquadricObj *quad= gluNewQuadric();
 	                 gluCylinder(quad,hairWidth,hairWidth,distance,32,32);
