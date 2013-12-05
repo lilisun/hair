@@ -15,12 +15,13 @@ Grid::Grid(int xDim, int yDim, int zDim, float len) {
 
 	int x_total = ceil(2*x/len);
 	int y_total = ceil(2*y/len);
+	int z_total = ceil(2*z/len);
 
 	for (int i=0; i < x_total; i++) {
 		vector<vector<vector<int>>> temp;
 		for (int j=0; j < y_total; j++) {
 			vector<vector<int>> temp2;
-			for (int k=0; k < 2*z; k++) {
+			for (int k=0; k < z_total; k++) {
 				vector<int> cell;
 				cell.push_back(-1);
 				temp2.push_back(cell);
@@ -36,14 +37,14 @@ Grid::Grid(int xDim, int yDim, int zDim, float len) {
 vector<int>* Grid::findCell(Vector3f position) {
 	int x = floor(position.x()/len) + this->x/len;
 	int y = floor(position.y()/len) + this->y/len;
-	int z = floor(position.z()) + this->z;
+	int z = floor(position.z()/len) + this->z/len;
 	return &g[x][y][z];
 }
 
 vector<int> Grid::getCell(Vector3f position) {
 	int x = floor(position.x()/len) + this->x/len;
 	int y = floor(position.y()/len) + this->y/len;
-	int z = floor(position.z()) + this->z;
+	int z = floor(position.z()/len) + this->z/len;
 
 	return g[x][y][z];
 }
@@ -100,9 +101,6 @@ void Grid::drawGrid() {
 }
 
 void Grid::reset() {
-	int x_total = ceil(2*x/len);
-	int y_total = ceil(2*y/len);
-
 	for (int i=0; i < nonEmpty.size(); i++) {
 		vector<int>* cell = nonEmpty[i];
 		cell->clear();
