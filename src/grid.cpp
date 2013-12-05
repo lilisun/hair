@@ -37,8 +37,20 @@ vector<int>* Grid::findCell(Vector3f position) {
 	return &g[x][y][z];
 }
 
+vector<int> Grid::getCell(Vector3f position) {
+	int x = floor(position.x()) + this->x;
+	int y = floor(position.y()) + this->y;
+	int z = floor(position.z()) + this->z;
+
+	return g[x][y][z];
+}
+
 void Grid::addParticle(Vector3f position, int index) {
 	vector<int>* cell = findCell(position);
+	if ((cell->size() == 1) && (cell->front() == -1)) {
+		cell->clear();
+	}
+
 	cell->push_back(index);
 }
 
@@ -64,4 +76,14 @@ string Grid::printGrid(){
 		gridString += "\n \n";
 	}
 	return gridString;
+}
+
+void Grid::drawGrid() {
+	glBegin(GL_LINES);
+	for (int i=0; i < 2*this->x; i++) {
+		int index = i - this->x;
+		glVertex3f(index,-this->y);
+		glVertex3f(index,this->y);
+	}
+	glEnd();
 }
