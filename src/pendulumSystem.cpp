@@ -23,6 +23,7 @@ PendulumSystem::PendulumSystem(int numParticles, int howManyStrands):ParticleSys
 	m_numParticles = (numHairParticles + numGhostParticles) * numStrands;
 	numStrandParticles=numHairParticles+numGhostParticles;
 	int rowLength=3; //for arranging hair in a grid
+	float colOffset=strand_offset;
 
 	//display options
 	drawSprings = false;
@@ -30,14 +31,15 @@ PendulumSystem::PendulumSystem(int numParticles, int howManyStrands):ParticleSys
     drawCylinders=false;
     hasForce=false;
 
+    float cellSize=0.17f;
     int grid_size = max((numParticles+howManyStrands)*rest_len, howManyStrands*strand_offset);
-    this->grid = Grid(grid_size, grid_size, grid_size, 0.17f);
+    this->grid = Grid(grid_size, grid_size, grid_size, cellSize);
 
 	for (int k = 1; k <= numStrands; k++){
 		//for making a grid of hairs
 		int colNum=(k-1)/rowLength;
 		float yPos=-1*((k-1)%rowLength)*strand_offset;
-		float zPos=colNum*strand_offset;
+		float zPos=colNum*cellSize;
 
 		for (int i = 0; i < numHairParticles; i++) {
 			// position vector
@@ -173,8 +175,8 @@ vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
 							Vector3f dir = current_velocity.normalized();
 							dir.negate(); // negate unit direction of velocity
 							srand (time(NULL));
-							float zOffset = 0.5 * ((float)rand()/RAND_MAX) + 1;
-							dir = dir * Vector3f(1.0f,1.0f,1.0f+zOffset); //try to push it in another direction so it's not bound in 1 plane
+							float zOffset = 0.05 * ((float)rand()/RAND_MAX) + 1; // either .05 or -.05
+							//dir = dir * Vector3f(1.0f,1.0f,1.0f+zOffset); //try to push it in another direction so it's not bound in 1 plane
 							Vector3f repel = dir * diff.abs()* 1.0f;
 							force += repel;
 						}
@@ -275,17 +277,23 @@ void PendulumSystem::draw()
 	                 glRotatef(-angleDeg,0,0,1.0f);
 
 	                 //rotate in yz plane
-	                 opp=pos[2]-pos2[2];
-	                 adj=pos[1]-pos2[1];
-	                 angleRad = atanf(opp/adj);
-	                 angleDeg = angleRad * 180 / 3.1415926;
-	                 if (opp>0 && adj < 0){ //4th quad, add 270
-	                 	angleDeg += 270;
-	                 }else if (opp<0 && adj < 0){ //3rd quad, add 180
-	                 	angleDeg += 180;
-	                 }
-	                 glRotatef(angleDeg,1.0f,0,0);
-
+	                 if (abs(pos[2]-pos2[2])>hairWidth/4.0f){
+	                 	//cout << "point "<<endl;
+	                 	//pos.print();
+	                 	//pos2.print();
+		                 opp=pos[2]-pos2[2];
+		                 adj=pos[1]-pos2[1];
+		                 angleRad = atanf(opp/adj);
+		                 angleDeg = angleRad * 180 / 3.1415926;
+		                 if (opp>0 && adj < 0){ //4th quad, add 270
+		                 	angleDeg += 270;
+		                 	//cout << "4th quad " << angleDeg << endl;
+		                 }else if (opp<0 && adj < 0){ //3rd quad, add 180
+		                 	angleDeg += 90;
+		                 	//cout << "3rd quad " << angleDeg << endl;
+		                 }
+		                 glRotatef(angleDeg,1.0f,0,0);
+	             		}	
 	                 glRotatef(90.0f,1.0f,0.0f,0.0f); //switch y and z axis since cylinders draw on the z axis
 	                 GLUquadricObj *quad= gluNewQuadric();
 	                 gluCylinder(quad,hairWidth,hairWidth,distance,32,32);
