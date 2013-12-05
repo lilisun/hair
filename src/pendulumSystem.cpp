@@ -6,35 +6,38 @@
 
 PendulumSystem::PendulumSystem(int numParticles, int howManyStrands):ParticleSystem(numParticles)
 {
+	//force constants
 	mass = 0.02f;
 	gravity = Vector3f(0.0f, -1.0f, 0.0f);
 	drag_const = 0.01f;
 	spring_const = 5.0f;
 	less_stiff_spring_const = 1.0f;
 	rest_len = 0.5f;
+
+	//hair constants
 	strand_offset = 0.2f;
 	numStrands = howManyStrands;
 	numHairParticles = numParticles;
 	numGhostParticles = numParticles - 1;
 	m_numParticles = (numHairParticles + numGhostParticles) * numStrands;
 	numStrandParticles=numHairParticles+numGhostParticles;
+	int rowLength=3; //for arranging hair in a grid
+
+	//display options
 	drawSprings = false;
     drawGhostParticles=false;
     drawCylinders=false;
     hasForce=false;
 
 	for (int k = 1; k <= numStrands; k++){
-	        float first = sqrt(pow(rest_len, 2.0f) - pow((k-1)*strand_offset, 2.0f)); // offset of first particle in x direction
-	        float h_offset = rest_len - first;
+		//for making a grid of hairs
+		int colNum=(k-1)/rowLength;
+		float yPos=-1*((k-1)%rowLength)*strand_offset;
+		float zPos=colNum*strand_offset;
+
 		for (int i = 0; i < numHairParticles; i++) {
 			// position vector
-			if (i == 0) {
-			  m_vVecState.push_back(Vector3f(0,-1*(k-1)*strand_offset,0));
-			}
-
-			else {
-			  m_vVecState.push_back(Vector3f((i*rest_len), -1*(k-1) * strand_offset, 0)); //start each strand not in the same place
-			}
+			m_vVecState.push_back(Vector3f((i*rest_len), yPos, zPos));
 
 			// velocity vector
 			m_vVecState.push_back(Vector3f(0,0,0));
@@ -82,7 +85,7 @@ PendulumSystem::PendulumSystem(int numParticles, int howManyStrands):ParticleSys
 		// GHOST PARTICLES (to form triangles)
 		for (int j = 0; j < numGhostParticles; j++) {
 			// position vector
-			m_vVecState.push_back(Vector3f((j+0.5)*rest_len, -1*(k-1) * strand_offset, 0.2f));
+			m_vVecState.push_back(Vector3f((j+0.5)*rest_len, yPos, zPos+0.2f));
 
 			// velocity vector
 			m_vVecState.push_back(Vector3f(0,0,0));
@@ -129,13 +132,13 @@ vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
 
 			else {
 				force = (mass*gravity) - drag_const*current_velocity;
-
+				int currentSpringIndex=i+k*numHairParticles;
 				// edge springs
-				force += addSpringForces(state, edge_springs[i], current_position);
+				force += addSpringForces(state, edge_springs[currentSpringIndex], current_position);
 				// bending springs
-				force += addSpringForces(state, bend_springs[i], current_position);
+				force += addSpringForces(state, bend_springs[currentSpringIndex], current_position);
 				// torsion springs
-				force += addSpringForces(state, torsion_springs[i],	current_position);
+				force += addSpringForces(state, torsion_springs[currentSpringIndex],	current_position);
 			}
 
 			f.push_back(current_velocity);
@@ -147,7 +150,6 @@ vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
 		}
 
 		for (int j=0; j < numGhostParticles; j++) {
-			int index = j + numHairParticles;
 			int currentIndex = j+numHairParticles+k*numStrandParticles;
 			Vector3f current_position = getParticlePosition(state, currentIndex);
 			Vector3f current_velocity = getParticleVelocity(state, currentIndex);
@@ -156,10 +158,11 @@ vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
 
 			force = (mass*gravity) - drag_const*current_velocity;
 
+			int currentSpringIndex=j + k*numGhostParticles;
 			// edge springs
-			force += addSpringForces(state, ghost_edge_springs[j], current_position);
+			force += addSpringForces(state, ghost_edge_springs[currentSpringIndex], current_position);
 			// bending springs
-			force += addSpringForces(state, ghost_bend_springs[j], current_position);
+			force += addSpringForces(state, ghost_bend_springs[currentSpringIndex], current_position);
 
 			f.push_back(current_velocity);
 			f.push_back(force/mass);
