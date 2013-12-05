@@ -242,11 +242,11 @@ void PendulumSystem::draw()
     
 
 	if (drawSprings) {
-		//drawSpring(torsion_springs);
+		drawSpring(torsion_springs);
 		drawSpring(ghost_edge_springs);
-		//drawSpring(ghost_bend_springs);
-		//drawSpring(edge_springs);
-		//drawSpring(bend_springs);
+		drawSpring(ghost_bend_springs);
+		drawSpring(edge_springs);
+		drawSpring(bend_springs);
 
 	}
 }
