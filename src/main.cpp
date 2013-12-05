@@ -139,6 +139,10 @@ namespace
             system = new PendulumSystem(numParticles,numStrands);
             break;
         }
+        case 'f':{
+            system->addForce();
+            break;
+        }
         default:
             cout << "Unhandled key press " << key << "." << endl;        
         }

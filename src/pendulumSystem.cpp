@@ -21,6 +21,7 @@ PendulumSystem::PendulumSystem(int numParticles, int howManyStrands):ParticleSys
 	drawSprings = false;
     drawGhostParticles=false;
     drawCylinders=false;
+    hasForce=false;
 
 	for (int k = 1; k <= numStrands; k++){
 	        float first = sqrt(pow(rest_len, 2.0f) - pow((k-1)*strand_offset, 2.0f)); // offset of first particle in x direction
@@ -140,7 +141,7 @@ vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
 			f.push_back(current_velocity);
 			f.push_back(force/mass);
 
-			empty.push_back(current_velocity);
+			empty.push_back(Vector3f(0,0,0));
 			empty.push_back(Vector3f(0,0,0)); // 0 force
 
 		}
@@ -163,13 +164,17 @@ vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
 			f.push_back(current_velocity);
 			f.push_back(force/mass);
 			
-			empty.push_back(current_velocity);
+			empty.push_back(Vector3f(0,0,0));
 			empty.push_back(Vector3f(0,0,0)); // 0 force
 
 		}
 	}
 
-	return empty; //f has forces, empty is no forces
+	if (hasForce){
+		return f;
+	}else{
+		return empty;
+	}
 }
 
 Vector3f PendulumSystem::getParticlePosition(vector<Vector3f> state, int x) {
@@ -301,6 +306,17 @@ void PendulumSystem::showCylinders(){
     
 	else {
 		drawCylinders = true;
+	}
+    
+}
+
+void PendulumSystem::addForce(){
+    if (hasForce) {
+		hasForce = false;
+	}
+    
+	else {
+		hasForce = true;
 	}
     
 }

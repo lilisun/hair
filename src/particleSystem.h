@@ -32,6 +32,7 @@ public:
     
     virtual void showGhostParticles()=0;
     virtual void showCylinders()=0;
+	virtual void addForce()=0;
 	
 protected:
 

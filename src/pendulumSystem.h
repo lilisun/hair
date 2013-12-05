@@ -21,6 +21,8 @@ public:
     void showGhostParticles();
     bool drawCylinders;
     void showCylinders();
+    bool hasForce;
+    void addForce();
 
 	Vector3f getParticlePosition(vector<Vector3f> state, int x);
 	Vector3f getParticleVelocity(vector<Vector3f> state, int x);
@@ -33,6 +35,7 @@ public:
     float spring_const;
     float less_stiff_spring_const;
     float rest_len;
+    float strand_offset;
 
     vector<Vector3f> ghost_particles;
     vector<vector<Vector4f>> edge_springs;
